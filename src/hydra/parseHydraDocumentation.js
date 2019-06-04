@@ -186,12 +186,13 @@ function findRelatedClass(docs, property) {
  *
  * @param {string} entrypointUrl
  * @param {object} options
+ * @param {array} requiredResources
  * @return {Promise.<Api>}
  */
-export default function parseHydraDocumentation(entrypointUrl, options = {}) {
+export default function parseHydraDocumentation(entrypointUrl, options = {}, requiredResources = []) {
   entrypointUrl = removeTrailingSlash(entrypointUrl);
 
-  return fetchEntrypointAndDocs(entrypointUrl, options).then(
+  return fetchEntrypointAndDocs(entrypointUrl, options, requiredResources).then(
     ({ entrypoint, docs, response }) => {
       const resources = [],
         fields = [],
@@ -232,6 +233,15 @@ export default function parseHydraDocumentation(entrypointUrl, options = {}) {
           '["http://www.w3.org/ns/hydra/core#property"][0]'
         );
         if (!property) {
+          continue;
+        }
+
+        // skip resource if it's not required
+        if (
+          !requiredResources.includes(
+            property["@id"].replace(entrypointClass["@id"] + "/", "")
+          )
+        ) {
           continue;
         }
 
