@@ -192,7 +192,7 @@ function findRelatedClass(docs, property) {
 export default function parseHydraDocumentation(entrypointUrl, options = {}, requiredResources = []) {
   entrypointUrl = removeTrailingSlash(entrypointUrl);
 
-  return fetchEntrypointAndDocs(entrypointUrl, options, requiredResources).then(
+  return fetchEntrypointAndDocs(entrypointUrl, options).then(
     ({ entrypoint, docs, response }) => {
       const resources = [],
         fields = [],
@@ -236,17 +236,20 @@ export default function parseHydraDocumentation(entrypointUrl, options = {}, req
           continue;
         }
 
+        // Add fields
+        const relatedClass = findRelatedClass(docs, property);
+
         // skip resource if it's not required
+        const relatedClassTitle = get(
+          relatedClass,
+          '["http://www.w3.org/ns/hydra/core#title"][0]["@value"]'
+        );
         if (
-          !requiredResources.includes(
-            property["@id"].replace(entrypointClass["@id"] + "/", "")
-          )
+          requiredResources.length > 0 &&
+          !requiredResources.includes(relatedClassTitle)
         ) {
           continue;
         }
-
-        // Add fields
-        const relatedClass = findRelatedClass(docs, property);
         for (const supportedProperties of relatedClass[
           "http://www.w3.org/ns/hydra/core#supportedProperty"
         ]) {
