@@ -1106,6 +1106,16 @@ const expectedApi = {
   resources: resources
 };
 
+const requiredResources = ["Book", "CustomResource"];
+
+const expectedRequiredResources = [book, customResource];
+
+const expectedRequiredResourcesApi = {
+  entrypoint: "http://localhost",
+  title: "API Platform's demo",
+  resources: expectedRequiredResources
+};
+
 const init = {
   status: 200,
   statusText: "OK",
@@ -1134,6 +1144,20 @@ test("parse a Hydra documentation", async () => {
       "http://localhost/docs.jsonld",
       options
     );
+  });
+});
+
+test("parse a Hydra documentation with required resources", async () => {
+  fetch.mockResponses([entrypoint, init], [docs, init]);
+
+  const options = { headers: new Headers({ CustomHeader: "customValue" }) };
+
+  await parseHydraDocumentation("http://localhost", options, requiredResources).then(data => {
+    expect(JSON.stringify(data.api, null, 2)).toBe(
+      JSON.stringify(expectedRequiredResourcesApi, null, 2)
+    );
+    expect(data.response).toBeDefined();
+    expect(data.status).toBe(200);
   });
 });
 
